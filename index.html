@@ -270,7 +270,7 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
     <div class="panel-head">
       <div>
         <h2 id="peopleTitle">Individual leaderboard</h2>
-        <p>Everyone's reported steps, week by week, including people walking on their own. Ranked by total so far.</p>
+        <p>Everyone's reported steps, week by week.</p>
       </div>
       <div class="controls">
         <label class="sr" for="peopleSearch">Search walkers</label>
@@ -288,7 +288,7 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
     <span class="count" id="peopleCount"></span>
   </section>
  
-  <p class="foot">Steps come from the SSUK Step Challenge sheet and refresh every 10 minutes. Teams report weekly.</p>
+  <p class="foot">Steps come from the SSUK Step Challenge sheet. Teams report weekly.</p>
 </div>
  
 <script>
@@ -851,7 +851,6 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
   function renderHeader(updatedAt, fromSheet) {
     document.getElementById("weekPill").textContent = "WEEK " + REPORTED + " RESULTS IN";
     var next = REPORTED < WEEKS ? "Week " + (REPORTED + 1) + " results due " + dateAt((REPORTED + 1) * 7, true) : "All four weeks are in";
-    var t = updatedAt ? " · checked " + String(updatedAt.getHours()).padStart(2, "0") + ":" + String(updatedAt.getMinutes()).padStart(2, "0") : "";
     document.getElementById("nextUpdate").textContent = next + (fromSheet ? t : "");
   }
   function renderStats() {
@@ -867,13 +866,13 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
     var avgDaily = active.length ? active.reduce(function (s, p) { return s + p.total; }, 0) / active.length / DATA_DAY : 0;
     var top = people.slice().sort(function (a, b) { return b.weeks[REPORTED - 1] - a.weeks[REPORTED - 1]; })[0];
     var topCard = top && top.weeks[REPORTED - 1] > 0
-      ? '<b>Top stepper this week</b><strong class="name">' + esc(top.name) + '</strong><span>' + fmt(top.weeks[REPORTED - 1]) + ' steps · about ' + fmt(top.weeks[REPORTED - 1] / 7) + ' a day · ' + esc(teamLabel(top)) + '</span>'
+      ? '<b>Top stepper this week</b><strong class="name">' + esc(top.name) + '</strong><span>' + fmt(top.weeks[REPORTED - 1]) + ' steps · ' + esc(teamLabel(top)) + '</span>'
       : '<b>Top stepper this week</b><strong class="name">Waiting for results</strong><span>Shown once week ' + REPORTED + ' steps are in</span>';
     var solo = people.filter(function (p) { return !p.team; }).length;
     document.getElementById("stats").innerHTML =
       '<div class="stat s-sun"><b>SSUK steps</b><strong class="num">' + fmt(total) + '</strong><span>≈ ' + fmt(total * KM_PER_STEP) + ' km walked together</span></div>' +
       '<div class="stat s-mint"><b>Steps this week</b><strong class="num">' + fmt(thisWeek) + '</strong><span>' + weekSub + '</span></div>' +
-      '<div class="stat s-sky"><b>Average daily steps</b><strong class="num">' + fmt(avgDaily) + '</strong><span>per walker · ' + people.length + ' walkers, ' + teams.length + ' teams' + (solo ? ', ' + solo + ' solo' : '') + '</span></div>' +
+      '<div class="stat s-sky"><b>Average daily steps</b><strong class="num">' + fmt(avgDaily) + '</strong><span>per walker · ' + people.length + ' walkers ' + '</span></div>' +
       '<div class="stat s-coral">' + topCard + '</div>';
   }
  
@@ -905,11 +904,11 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
  
   var MODES = {
     solo: { route: SOLO_ROUTE, round: true, camMin: 45, pad: 30, noun: "walkers",
-      desc: "Every walker's steps on one route: Sheffield to London via Manchester, Liverpool, Chester, Birmingham, Bristol and Reading." },
+      desc: "Every walker's steps: Sheffield to London." },
     team: { route: TEAM_ROUTE, round: false, camMin: 150, pad: 55, noun: "teams",
-      desc: "Each team's combined steps as one walk: Sheffield to Vienna via London, Paris, Brussels, Amsterdam, Berlin and Prague." },
+      desc: "Each team's combined steps: From Sheffield to Vienna via European capitals." },
     company: { route: COMPANY_ROUTE, round: false, camMin: 900, pad: 120, noun: "of us together",
-      desc: "All of SSUK's steps added together: Sheffield along the Silk Road via Istanbul, Samarkand, Xi'an and Seoul, then up Japan to Wakkanai at its northern tip." }
+      desc: "All of SSUK's steps: From Sheffield to Tokyo and beyond." }
   };
   Object.keys(MODES).forEach(function (k) {
     var r = MODES[k].route, xs = r.cities.map(function (c) { return c.x; }), ys = r.cities.map(function (c) { return c.y; });
