@@ -249,7 +249,7 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
       <div class="tip" id="tip" hidden></div>
     </div>
     <div class="map-foot">
-      <span><strong>1 step ≈ 0.75 m.</strong> Replay spreads each weekly total evenly across its 7 days.</span>
+      <span><strong>1 step ≈ 0.75 m.</strong> </span>
       <span class="key"><i style="background: var(--route)"></i>Leader's trail</span>
       <span>Hover or tap a pin to see who it is.</span>
     </div>
@@ -851,7 +851,7 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
   function renderHeader(updatedAt, fromSheet) {
     document.getElementById("weekPill").textContent = "WEEK " + REPORTED + " RESULTS IN";
     var next = REPORTED < WEEKS ? "Week " + (REPORTED + 1) + " results due " + dateAt((REPORTED + 1) * 7, true) : "All four weeks are in";
-    document.getElementById("nextUpdate").textContent = next + (fromSheet ? t : "");
+    document.getElementById("nextUpdate").textContent = next;
   }
   function renderStats() {
     var src = people.length ? people : teams;
