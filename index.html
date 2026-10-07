@@ -903,9 +903,9 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
   }
  
   var MODES = {
-    solo: { route: SOLO_ROUTE, round: true, camMin: 45, pad: 30, noun: "walkers",
+    solo: { route: SOLO_ROUTE, padPx: 40, zoomMin: 6, round: true, camMin: 45, pad: 30, noun: "walkers",
       desc: "Every walker's steps: Sheffield to London." },
-    team: { route: TEAM_ROUTE, round: false, camMin: 150, pad: 55, noun: "teams",
+    team: { route: TEAM_ROUTE, padPx: 45, zoomMin: 20, round: false, camMin: 150, pad: 55, noun: "teams",
       desc: "Each team's combined steps: From Sheffield to Vienna via European capitals." },
     company: { route: COMPANY_ROUTE, round: false, camMin: 900, pad: 120, noun: "of us together",
       desc: "All of SSUK's steps: From Sheffield to Tokyo and beyond." }
@@ -1056,7 +1056,20 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
     anim = requestAnimationFrame(step);
   }
   var btnAll = document.getElementById("viewAll"), btnPack = document.getElementById("viewPack");
-  function viewBox() { return view === "all" ? M.home : packBox(M.pad + 20, M.camMin * 1.6); }
+  // Zoom to the pack: individuals and teams get the tightest view that still holds every pin
+  function tightBox(padPx, minW) {
+    if (!current.length) return M.home;
+    var xs = current.map(function (o) { return o.p.x; }), ys = current.map(function (o) { return o.p.y; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs), minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var W = mapBox.clientWidth || 1000, H = mapBox.clientHeight || W * MH / MW;
+    var fx = Math.min(0.6, 2 * padPx / W), fy = Math.min(0.6, 2 * padPx / H);
+    var w = Math.max((maxX - minX) / (1 - fx), (maxY - minY) / (1 - fy) * MW / MH, minW), h = w * MH / MW;
+    return { x: (minX + maxX) / 2 - w / 2, y: (minY + maxY) / 2 - h / 2, w: w, h: h };
+  }
+  function viewBox() {
+    if (view === "all") return M.home;
+    return mode === "company" ? packBox(M.pad + 20, M.camMin * 1.6) : tightBox(M.padPx, M.zoomMin);
+  }
   function setView(v, instant) {
     view = v; btnAll.setAttribute("aria-pressed", v === "all"); btnPack.setAttribute("aria-pressed", v === "pack");
     if (instant) { if (anim) cancelAnimationFrame(anim); vb = viewBox(); applyVB(); layout(); } else animateVB(viewBox());
