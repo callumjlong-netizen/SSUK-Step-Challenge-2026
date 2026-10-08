@@ -308,9 +308,6 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
   // =====================================================================
   var SHEET_ID = "1GYPCvD7jUilbRuFVeM3tydtnVJxwSlzRLoxP4qgHonY";
   var SHEET_GID = "0";
-  // Optional: paste a "Publish to web" CSV link here and it will be used first.
-  var PUBLISHED_CSV_URL = "";
-  var REFRESH_MINUTES = 10;
  
   // ---------- Challenge calendar ----------
   var START = Date.UTC(2026, 8, 28);           // Mon 28 Sep 2026
@@ -521,7 +518,6 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
  
   function loadSheet() {
     var tries = [];
-    if (PUBLISHED_CSV_URL) tries.push(function () { return getCSV(PUBLISHED_CSV_URL).then(modelFromRows); });
     tries.push(function () { return getCSV(BASE + "/export?format=csv&gid=" + SHEET_GID).then(modelFromRows); });
     tries.push(function () {
       return getCSV(gviz("")).then(function (rows) {
@@ -535,82 +531,6 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
       return tries[i++]().catch(function (e) { return attempt(e); });
     }
     return attempt();
-  }
- 
-  // Saved copy of the sheet (week 1, taken 5 Oct) — used only when the live sheet can't be reached
-  function snapshotModel() {
-    var T = [["1", "The Mill Marchers", 5, 565591], ["2", "Test House Trekkers", 5, 416465], ["3", "Stocksbridge Steels", 5, 0], ["4", "The Product Trek-nologists", 5, 347966],
-      ["5", "Billet Mill-ion Steps", 5, 383781], ["6", "Are we there yet?", 5, 309932], ["7", "BBR Despatch", 5, 0], ["8", "The Hopefuls", 5, 319664], ["9", "Stocksbridge Athletes Foot", 4, 152302]];
-    var P = [
-      "James Jackson|1|163545",
-      "Daniel Robson|1|124354",
-      "Thomas Williams|1|107699",
-      "Wayne Troop|1|79742",
-      "Jonathon Waistnidge|1|90251",
-      "Adam Roberts|2|96246",
-      "Samuel Houston|2|104752",
-      "Calum Rafferty|2|72190",
-      "Mike Newsum|2|58790",
-      "Andrew Newrick|2|84487",
-      "Lee Broughton|3|",
-      "Shaun Broughton|3|",
-      "Jordan Bisatt|3|",
-      "Ryan Revill|3|",
-      "Matt Watling|3|",
-      "Imrose Mahmood|4|69562",
-      "Alfie Smithson-McMurray|4|77064",
-      "Jack Nelson|4|47435",
-      "Robert Reiss|4|85093",
-      "James Lowe|4|68812",
-      "Karen Firth|5|75694",
-      "Scott Constable|5|66664",
-      "Joshua Hulbert|5|68664",
-      "William Finkill|5|87299",
-      "Jake Hammerton|5|85460",
-      "Gary White|6|47702",
-      "Kath Sharp|6|77420",
-      "Mandy Blackett|6|64696",
-      "Morgan Johnson|6|55944",
-      "Adriano Lucchesi|6|64170",
-      "Andrew Thomsom|7|",
-      "Gary Groombridge|7|",
-      "Steve Bailey|7|",
-      "MIcheal Collins|7|",
-      "Danny Larkin|7|",
-      "Mick Hood|8|65000",
-      "Lloyd MArtin|8|75824",
-      "Katy Scholfield|8|",
-      "Tony Goddard|8|34690",
-      "Carl Dermott|8|144150",
-      "Stewaert Jenkinson|9|",
-      "Mark Fretwell|9|152302",
-      "Richard Witney|9|",
-      "Tony Lonsdale|9|",
-      "Callum Long||33617",
-      "Joshua Carter||",
-      "Lewis Taylor||110290",
-      "Stephanie Oldershaw||89257",
-      "Andy Thompson||",
-      "Danielle Hirst||",
-      "Gordon Senior||",
-      "Martyn Cliff||110241",
-      "Debbie Cooper||123739",
-      "Leo Mulhern||107122",
-      "Nicholas Barrie||77663",
-      "Stephen Aremu||",
-      "Matt Craig||",
-      "Darren Webster||",
-      "Nigel Clarke||97615",
-      "Richard Hammond||106373",
-      "Ian Read||89189",
-      "William Marsh||",
-      "Sean Teevan||",
-      "Tetiana Levchenko||49660"
-    ];
-    return {
-      teams: T.map(function (t) { return { id: t[0], name: t[1], memberCount: t[2], weeks: [t[3], 0, 0, 0] }; }),
-      people: P.map(function (l) { var f = l.split("|"); return { name: f[0], teamId: f[1], weeks: [num(f[2]), null, null, null] }; })
-    };
   }
  
   // =====================================================================
@@ -1047,7 +967,7 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
     btnSolo.setAttribute("aria-pressed", m === "solo"); btnTeam.setAttribute("aria-pressed", m === "team"); btnCo.setAttribute("aria-pressed", m === "company");
     btnPack.textContent = m === "company" ? "Zoom to us" : "Zoom to the pack";
     document.getElementById("mapDesc").textContent = M.desc;
-    document.getElementById("routeLine").innerHTML = "Total route: <strong>" + fmt(M.route.km) + " km</strong> ≈ <strong>" + fmt(M.steps) + " steps</strong>" + (m === "company" ? "" : " · " + ents().length + " " + M.noun);
+    document.getElementById("routeLine").innerHTML = "Total route: <strong>" + fmt(M.route.km) + " km</strong> ≈ <strong>" + fmt(M.steps) + " steps</strong>" + (m === "company" || !ents().length ? "" : " · " + ents().length + " " + M.noun);
     current = positions(DATA_DAY);
     buildStatic(); buildPins(); setView(view === "free" ? "all" : view, true); renderTeams();
   }
@@ -1157,9 +1077,9 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
   filter.addEventListener("change", renderPeople);
  
   // =====================================================================
-  //  Boot: load the sheet, fall back to sample data if it can't be reached
+  //  Boot: load the sheet once when the page opens
   // =====================================================================
-  var notice = document.getElementById("notice"), loaded = false;
+  var notice = document.getElementById("notice");
   function apply(model, fromSheet) {
     var keepMode = mode;
     setModel(model);
@@ -1167,20 +1087,21 @@ td.pending { color: var(--muted); font-size: 13px; font-weight: 700; opacity: .7
     renderStats(); fillFilter(); renderPeople();
     if (!replaying) setMode(keepMode);
   }
-  function refresh() {
-    return loadSheet().then(function (model) {
-      apply(model, true); loaded = true; notice.hidden = true;
-    }).catch(function (err) {
-      if (loaded) return; // keep showing the last good data
-      apply(snapshotModel(), false);
-      notice.hidden = false;
-      notice.innerHTML = "<strong>Showing a saved copy of the week 1 results.</strong> " + esc(err && err.message ? err.message : "Couldn't load the Google Sheet.") +
-        " Once the page is on your website, the live numbers load here automatically.";
-    });
-  }
   document.getElementById("stats").innerHTML = '<div class="stat s-sun"><b>Loading the latest steps…</b></div>';
-  refresh();
-  setInterval(function () { if (!replaying) refresh(); }, REFRESH_MINUTES * 60 * 1000);
+  loadSheet().then(function (model) {
+    apply(model, true);
+  }).catch(function () {
+    // No saved copy: show the empty map and say plainly that the steps couldn't be loaded
+    apply({ teams: [], people: [] }, false);
+    notice.hidden = false;
+    notice.innerHTML = "<strong>Couldn't load the latest steps.</strong> Please refresh the page or try again later.";
+    document.getElementById("weekPill").textContent = "STEPS NOT LOADED";
+    document.getElementById("nextUpdate").textContent = "";
+    document.getElementById("stats").innerHTML = '<div class="stat s-sun"><b>Steps</b><strong>–</strong><span>Waiting for the step sheet</span></div>';
+    document.getElementById("teamList").innerHTML = '<div class="empty">The team leaderboard will appear once the steps load.</div>';
+    document.getElementById("peopleBody").innerHTML = '<tr><td colspan="' + (WEEKS + 4) + '" class="empty">The individual leaderboard will appear once the steps load.</td></tr>';
+    document.getElementById("peopleCount").textContent = "";
+  });
   window.addEventListener("resize", function () { if (tipEnt) positionTip(tipEnt); });
 })();
 </script>
